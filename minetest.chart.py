@@ -40,6 +40,13 @@ CHARTS = {
     }
 }
 
+event_regexp = re.compile('^\d\d\d\d-\d\d-\d\d [0-2]\d:\d\d:\d\d: (\w+)\[Server\]: (.+)')
+node_placed_regexp = re.compile('^\S+ places node \S+ at \([0-9\-]\d*,[0-9\-]\d*,[0-9\-]\d*\)')
+node_digged_regexp = re.compile('^\S+ digs \S+ at \([0-9\-]\d*,[0-9\-]\d*,[0-9\-]\d*\)')
+chat_regexp = re.compile('^CHAT: <\S+> .*')
+player_join_regexp = re.compile('^\S+ joins game. List of players: .*')
+player_leave_regexp = re.compile('^\S+ leaves game. List of players: .*')
+
 class Service(LogService):
     def __init__(self, configuration=None, name=None):
         LogService.__init__(self, configuration=configuration, name=name)
@@ -57,21 +64,21 @@ class Service(LogService):
             return self.data
 
         for line in raw:
-            m = re.match('^\d\d\d\d-\d\d-\d\d [0-2]\d:\d\d:\d\d: (\w+)\[Server\]: (.+)', line)
+            m = event_regexp.match(line)
             if m:
                 event_type = m.group(1)
                 if event_type == 'ACTION':
                     self.data['actions'] += 1
                     action = m.group(2)
-                    if re.match('^\S+ places node \S+ at \([0-9\-]\d*,[0-9\-]\d*,[0-9\-]\d*\)', action):
+                    if node_placed_regexp.match(action):
                         self.data['placed_nodes'] += 1
-                    elif re.match('^\S+ digs \S+ at \([0-9\-]\d*,[0-9\-]\d*,[0-9\-]\d*\)', action):
+                    elif node_digged_regexp.match(action):
                         self.data['digged_nodes'] += 1
-                    elif re.match('^CHAT: <\S+> .*', action):
+                    elif chat_regexp.match(action):
                         self.data['chat_messages'] += 1
-                    elif re.match('^\S+ joins game. List of players: .*', action):
+                    elif player_join_regexp.match(action):
                         self.data['players'] += 1
-                    elif re.match('^\S+ leaves game. List of players: .*', action):
+                    elif player_leave_regexp.match(action):
                         if self.data['players'] > 0:
                             self.data['players'] -= 1
                 elif event_type == 'ERROR':
