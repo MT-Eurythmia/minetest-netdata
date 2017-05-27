@@ -1,4 +1,4 @@
-# Minetest Plugin for NetData
+# Minetest Module for NetData
 
 Displays the following informations:
 * Number of players (note: this information will not be true until the server has no player while NetData is running)
@@ -6,12 +6,13 @@ Displays the following informations:
 * Number of placed nodes per second
 * Number of digged nodes per second
 * Total number of actions per second
+* Number of errors and warnings per second
 
 [Live example](http://netdata.langg.net/#menu_minetest_Mynetest_submenu_players)
 
 ## Installation
 
-Edit `minetest.conf` so it corresponds to your system.
+Edit `minetest.conf` so it fits with your system setup.
 
 Then, run the following commands as root:
 ```
@@ -21,4 +22,4 @@ cp minetest.chart.py /usr/libexec/netdata/python.d/
 cp minetest.conf /etc/netdata/python.d/
 ```
 
-And restart netdata (try `systemctl restart netdata` or `service netdata restart` or `killall netdata && netdata`).
+Finally, restart netdata (try `systemctl restart netdata` or `service netdata restart` or `killall netdata && netdata`).
