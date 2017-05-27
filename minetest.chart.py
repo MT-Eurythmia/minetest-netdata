@@ -7,7 +7,7 @@ from base import LogService
 ORDER = ['players', 'actions', 'nodes_actions', 'chat_messages', 'errors']
 CHARTS = {
     'players': {
-        'options': [None, 'Players', 'players', 'players', 'minetest.players', 'line'],
+        'options': [None, 'Players', 'players', 'players', 'minetest.players', 'area'],
         'lines': [
             ['players', 'players', 'absolute']
         ]
