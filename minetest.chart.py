@@ -4,7 +4,7 @@ from os import access as is_accessible, R_OK
 from os.path import isdir, getsize
 from base import LogService
 
-ORDER = ['players', 'actions', 'nodes_actions', 'chat_messages']
+ORDER = ['players', 'actions', 'nodes_actions', 'chat_messages', 'errors']
 CHARTS = {
     'players': {
         'options': [None, 'Players', 'players', 'players', 'minetest.players', 'line'],
@@ -31,6 +31,13 @@ CHARTS = {
             ['chat_messages', 'chat messages/s', 'incremental']
         ]
     },
+    'errors': {
+        'options': [None, 'Errors and Warnings', 'error/s', 'errors_and_warnings', 'minetest.errors', 'line'],
+        'lines': [
+            ['errors', 'errors/s', 'incremental'],
+            ['warnings', 'warnings/s', 'incremental']
+        ]
+    }
 }
 
 class Service(LogService):
@@ -39,7 +46,7 @@ class Service(LogService):
         self.log_path = self.configuration.get('log_path', '/home/minetest/.minetest/debug.txt')
         self.order = ORDER
         self.definitions = CHARTS
-        self.data = {'players': 0, 'actions': 0, 'placed_nodes': 0, 'digged_nodes': 0, 'chat_messages': 0}
+        self.data = {'players': 0, 'actions': 0, 'warnings': 0, 'errors': 0, 'placed_nodes': 0, 'digged_nodes': 0, 'chat_messages': 0}
 
     def _get_data(self):
         try:
@@ -50,21 +57,27 @@ class Service(LogService):
             return self.data
 
         for line in raw:
-            m = re.match('^\d\d\d\d-\d\d-\d\d [0-2]\d:\d\d:\d\d: ACTION\[Server\]: (.+)', line)
+            m = re.match('^\d\d\d\d-\d\d-\d\d [0-2]\d:\d\d:\d\d: (\w+)\[Server\]: (.+)', line)
             if m:
-                self.data['actions'] += 1
-                action = m.group(1)
-                if re.match('^\S+ places node \S+ at \([0-9\-]\d*,[0-9\-]\d*,[0-9\-]\d*\)', action):
-                    self.data['placed_nodes'] += 1
-                elif re.match('^\S+ digs \S+ at \([0-9\-]\d*,[0-9\-]\d*,[0-9\-]\d*\)', action):
-                    self.data['digged_nodes'] += 1
-                elif re.match('^CHAT: <\S+> .*', action):
-                    self.data['chat_messages'] += 1
-                elif re.match('^\S+ joins game. List of players: .*', action):
-                    self.data['players'] += 1
-                elif re.match('^\S+ leaves game. List of players: .*', action):
-                    if self.data['players'] > 0:
-                        self.data['players'] -= 1
+                event_type = m.group(1)
+                if event_type == 'ACTION':
+                    self.data['actions'] += 1
+                    action = m.group(2)
+                    if re.match('^\S+ places node \S+ at \([0-9\-]\d*,[0-9\-]\d*,[0-9\-]\d*\)', action):
+                        self.data['placed_nodes'] += 1
+                    elif re.match('^\S+ digs \S+ at \([0-9\-]\d*,[0-9\-]\d*,[0-9\-]\d*\)', action):
+                        self.data['digged_nodes'] += 1
+                    elif re.match('^CHAT: <\S+> .*', action):
+                        self.data['chat_messages'] += 1
+                    elif re.match('^\S+ joins game. List of players: .*', action):
+                        self.data['players'] += 1
+                    elif re.match('^\S+ leaves game. List of players: .*', action):
+                        if self.data['players'] > 0:
+                            self.data['players'] -= 1
+                elif event_type == 'ERROR':
+                    self.data['errors'] += 1
+                elif event_type == 'WARNING':
+                    self.data['warnings'] += 1
             elif line == '  Separator':
                 self.data['players'] = 0
 
