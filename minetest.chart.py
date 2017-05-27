@@ -46,6 +46,7 @@ node_digged_regexp = re.compile('^\S+ digs \S+ at \([0-9\-]\d*,[0-9\-]\d*,[0-9\-
 chat_regexp = re.compile('^CHAT: <\S+> .*')
 player_join_regexp = re.compile('^\S+ joins game. List of players: .*')
 player_leave_regexp = re.compile('^\S+ leaves game. List of players: .*')
+player_times_out_regexp = re.compile('^\S+ times out. List of players: .*')
 
 class Service(LogService):
     def __init__(self, configuration=None, name=None):
@@ -78,7 +79,7 @@ class Service(LogService):
                         self.data['chat_messages'] += 1
                     elif player_join_regexp.match(action):
                         self.data['players'] += 1
-                    elif player_leave_regexp.match(action):
+                    elif player_leave_regexp.match(action) or player_times_out_regexp.match(action):
                         if self.data['players'] > 0:
                             self.data['players'] -= 1
                 elif event_type == 'ERROR':
