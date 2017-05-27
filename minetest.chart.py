@@ -65,6 +65,8 @@ class Service(LogService):
                 elif re.match('^\S+ leaves game. List of players: .*', action):
                     if self.data['players'] > 0:
                         self.data['players'] -= 1
+            elif line == '  Separator':
+                self.data['players'] = 0
 
         return self.data
 
